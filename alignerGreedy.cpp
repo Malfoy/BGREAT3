@@ -152,7 +152,7 @@ alignment Aligner::alignReadGreedyAnchors(const string& read, int score_max, con
 			}
 		}
 	}else{
-		if(read.size()-positionRead>=unitig.size()-positionUnitig){
+		if(read.size()-positionRead>unitig.size()-positionUnitig){
 			//CASE 3 : read overlap unitig
 			//~ cout<<"3:"<<endl;
 			if(unitig.size()+positionRead-positionUnitig<k){
@@ -860,13 +860,13 @@ void get_consensus( string& consensus,const string& newread,const string& actual
 
 //OK
 void Aligner::alignReadOpti(const string& read, alignment& al, bool perfect=false){
-	cout<<"************************************************************************************************"<<endl;
 	al.path={};
 	alignment best_al;
 	int max_score((int)read.size()-5*errorsMax);
 	//~ cout<<"ARO"<<max_score<<endl;
 	vector<pair<pair<uint,uint>,uint>> listAnchors(getNAnchors(read,tryNumber));
 	if(listAnchors.empty()){
+
 		++noOverlapRead;
 		++notAligned;
 		return;
@@ -885,6 +885,7 @@ void Aligner::alignReadOpti(const string& read, alignment& al, bool perfect=fals
 				++alignedRead;
 				return;
 			}
+			//~ exit(0);
 		}
 		//~ alignment_clean(al);
 		if(al.score>=max_score){
@@ -923,6 +924,7 @@ string Aligner::alignReadOpti_correction(const string& read, alignment& al){
 	string consensus,new_correction;
 	vector<pair<pair<uint,uint>,uint>> listAnchors(getNAnchors(read,tryNumber));
 	if(listAnchors.empty()){
+		cerr<<">1"<<endl<<read<<endl;
 		++noOverlapRead;
 		++notAligned;
 		return read;
@@ -941,6 +943,7 @@ string Aligner::alignReadOpti_correction(const string& read, alignment& al){
 				++alignedRead;
 				return read;
 			}
+			//~ cout<<"NOOOOOOOOOOOOO"<<endl;
 		}
 		alignment_clean(al);
 		if(al.score>=max_score){
@@ -1172,7 +1175,7 @@ string Aligner::get_corrected_read(const alignment& al, const string& read){
 	}
 	if(al.unitig_number_anchored>=al.path.size()){
 		//~ cout<<"PB";
-		cout<<"DAFUCK"<<endl;
+		cout<<"Should not happen"<<endl;
 		cin.get();
 		return read;
 	}
@@ -1235,7 +1238,7 @@ string Aligner::get_corrected_read(const alignment& al, const string& read){
 	int new_score(missmatchNumber(read,consensus,1000));
 	//~ cout<<new_score<<" "<<al.score<<endl;
 	if(al.score!=new_score){
-		cout<<"WTFFFF"<<endl;
+		cout<<"Should no happen"<<endl;
 		cin.get();
 	}
 	return consensus;

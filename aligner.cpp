@@ -1215,7 +1215,7 @@ vector<pair<pair<uint,uint>,uint>> Aligner::getNAnchorsnostr(const string& read,
 	uint64_t hash,anchorAdded(0);
 	string unitig;
 	kmer num(0),rcnum(0),rep(0);
-	for(uint i(0); i+anchorSize<read.size(); ++i){
+	for(uint i(0); i+anchorSize<=read.size(); ++i){
 		bool returned(false);
 		if(num==0 and rcnum==0){
 			num=(str2num(read.substr(i,anchorSize)));
@@ -1306,7 +1306,7 @@ vector<pair<pair<uint,uint>,uint>> Aligner::getNAnchorsstr(const string& read,ui
 	string unitig,num,rcnum,rep;
 	uint positionUnitig;
 	uint anchorAdded(0);
-	for(uint i(0);i+anchorSize<read.size();++i){
+	for(uint i(0);i+anchorSize<=read.size();++i){
 		bool returned(false);
 		if(num.empty()){
 			num=((read.substr(i,anchorSize)));
@@ -1632,6 +1632,11 @@ vector<pair<pair<uint,uint>,uint>> Aligner::getNAnchorsstr(const string& read,ui
 //~ }
 
 
+bool is_a_number(char c){
+	return(c>47 and c <58);
+}
+
+
 double parseCoverage(const string& str){
 	size_t pos(str.find("km:f:"));
 	if(pos==string::npos){
@@ -1641,7 +1646,7 @@ double parseCoverage(const string& str){
 		return 1;
 	}
 	uint i(1);
-	while(str[i+pos+5]!=' '){
+	while(is_a_number(str[i+pos+5])){
 		++i;
 	}
 	return stof(str.substr(pos+5,i));
@@ -1672,8 +1677,10 @@ void Aligner::indexUnitigsAux(){
 		double cov(parseCoverage(line));
 		getline(unitigFile,line);
 		if(line.size()<k){
+			//~ cout<<"NO"<<endl;
 			continue;
 		}else{
+			//~ cout<<"GO"<<endl;
 			unitigs.push_back(line);
 			unitigs_weight.push_back(cov);
 			unitigsRC.push_back(reverseComplements(line));
@@ -1693,6 +1700,7 @@ void Aligner::indexUnitigsAux(){
 			}
 			kmer seq(str2num(line.substr(0,anchorSize))),rcSeq(rcb(seq,anchorSize)),canon(min(seq,rcSeq));
 			anchorsV[canon%Split].push_back(canon);
+
 			for(uint j(0);j+anchorSize<line.size();++j){
 				updateK(seq,line[j+anchorSize]);
 				updateRCK(rcSeq,line[j+anchorSize]);
@@ -1701,9 +1709,12 @@ void Aligner::indexUnitigsAux(){
 					anchorsV[canon%Split].push_back(canon);
 				}
 			}
+			//~ if(jeaneadded!=line.size()-k+1){
+				//~ cout<<"NANIIII"<<endl;
+				//~ exit(0);
+			//~ }
 		}
 	}
-
 	auto end1=system_clock::now();auto waitedFor1=end1-start1;cout<<"Duration "<<duration_cast<seconds>(waitedFor1).count()<<" seconds"<<endl;
 
 	cout<<"Sorting anchors: "<<flush;auto start2=system_clock::now();
@@ -1723,6 +1734,7 @@ void Aligner::indexUnitigsAux(){
 		anchorsV[i].clear();
 		vector<uint64_t>().swap(anchorsV[i]);
 	}
+
 	auto end2=system_clock::now();auto waitedFor2=end2-start2;cout<<"Duration "<<duration_cast<seconds>(waitedFor2).count()<<" seconds"<<endl;
 
 	cout<<"Creating MPHF: "<<flush;auto start3=system_clock::now();
@@ -1739,6 +1751,7 @@ void Aligner::indexUnitigsAux(){
 		anchorsMPHF= boomphf::mphf<uint64_t,hasher2>(anchors->size(),data_iterator3,coreNumber,gammaFactor,false);
 	}
 	anchorNumber=anchors->size();
+
 	delete anchors;
 	if(vectorMode){
 		anchorsPositionVector.resize((anchorNumber+2)*maxPositionAnchors,{});
