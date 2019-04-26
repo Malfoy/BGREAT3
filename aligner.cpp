@@ -1675,6 +1675,7 @@ void Aligner::indexUnitigsAux(){
 	while(!unitigFile.eof()){
 		getline(unitigFile,line);
 		double cov(parseCoverage(line));
+		//~ cout<<line<<" "<<cov<<endl;cin.get();
 		getline(unitigFile,line);
 		if(line.size()<k){
 			//~ cout<<"NO"<<endl;
@@ -1683,6 +1684,7 @@ void Aligner::indexUnitigsAux(){
 			//~ cout<<"GO"<<endl;
 			unitigs.push_back(line);
 			unitigs_weight.push_back(cov);
+
 			unitigsRC.push_back(reverseComplements(line));
 			kmer beg(str2num(line.substr(0,k-1))),rcBeg(rcb(beg,k-1));
 			if(beg<=rcBeg){
@@ -1786,6 +1788,7 @@ void Aligner::indexUnitigsAuxStrfull(){
 			continue;
 		}else{
 			unitigs.push_back(line);
+
 			unitigs_weight.push_back(cov);
 			unitigsRC.push_back(reverseComplements(line));
 			beg=((line.substr(0,k-1)));

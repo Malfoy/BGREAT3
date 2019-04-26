@@ -61,14 +61,35 @@ uint trimingBases(0);
 //~ }
 
 
+
 double Aligner::alignment_weight(const vector<int>& path){
 	double res(0);
-	double base(k-1);
+	double base(0);
 	for(uint i(0);i<path.size();++i){
-		res+=unitigs_weight[abs(path[i])]*(unitigs[abs(path[i])].size()-k+1);
+		res+=(unitigs_weight[abs(path[i])]*(unitigs[abs(path[i])].size()-k+1));
 		base+=(unitigs[abs(path[i])].size()-k+1);
 	}
 	return res/base;
+}
+
+
+
+vector<int> shared_unitigs_among_path(vector<int> path1,vector<int> path2){
+	vector<int> res;
+	sort(path1.begin(),path1.end());
+	sort(path2.begin(),path2.end());
+	uint i1(0),i2(0);
+	while(i1<path1.size() and i2<path2.size()){
+		if(path1[i1]==path2[i2]){
+			res.push_back(path1[i1]);
+			++i1;++i2;
+		}else  if(path1[i1]<path2[i2]){
+			++i1;
+		}else{
+			++i2;
+		}
+	}
+	return res;
 }
 
 
@@ -887,7 +908,7 @@ void Aligner::alignReadOpti(const string& read, alignment& al, bool perfect=fals
 			}
 			//~ exit(0);
 		}
-		//~ alignment_clean(al);
+		alignment_clean(al);
 		if(al.score>=max_score){
 			if(false and al.score==max_score and noMultiMapping){
 				if(al.path!=best_al.path){
@@ -915,8 +936,6 @@ void Aligner::alignReadOpti(const string& read, alignment& al, bool perfect=fals
 
 
 
-
-
 string Aligner::alignReadOpti_correction(const string& read, alignment& al){
 	al.path={};
 	alignment best_al;
@@ -924,7 +943,7 @@ string Aligner::alignReadOpti_correction(const string& read, alignment& al){
 	string consensus,new_correction;
 	vector<pair<pair<uint,uint>,uint>> listAnchors(getNAnchors(read,tryNumber));
 	if(listAnchors.empty()){
-		cerr<<">1"<<endl<<read<<endl;
+		//~ cerr<<">1"<<endl<<read<<endl;
 		++noOverlapRead;
 		++notAligned;
 		return read;
@@ -949,7 +968,6 @@ string Aligner::alignReadOpti_correction(const string& read, alignment& al){
 		if(al.score>=max_score){
 			if(al.score==max_score and noMultiMapping){
 				new_correction=get_corrected_read(al,read);
-
 				if(consensus!=""){
 					get_consensus(consensus,new_correction,read);
 					if(consensus==read){
@@ -977,11 +995,13 @@ string Aligner::alignReadOpti_correction(const string& read, alignment& al){
 }
 
 
+
 string Aligner::alignReadOpti_correction2(const string& read, alignment& al){
 	al.path={};
 	alignment best_al;
 	int max_score(read.size()-5*errorsMax-1);
 	string consensus,new_correction;
+	vector<int> shared_leto;
 	vector<pair<pair<uint,uint>,uint>> listAnchors(getNAnchors(read,tryNumber));
 	if(listAnchors.empty()){
 		++noOverlapRead;
@@ -1007,8 +1027,26 @@ string Aligner::alignReadOpti_correction2(const string& read, alignment& al){
 		if(al.score>=max_score){
 			if(al.score==max_score and noMultiMapping){
 				new_correction=get_corrected_read(al,read);
-
-
+				if(consensus==""){
+					consensus=new_correction;
+					if(consensus==read){
+						return read;
+					}
+				}else{
+					shared_leto=shared_unitigs_among_path(best_al.path,al.path);
+					if(shared_leto.size()<best_al.path.size() and shared_leto.size()<al.path.size() ){
+						double coverage_consensus=alignment_weight(shared_leto);
+						double coverage_best=alignment_weight(best_al.path);
+						double coverage_new=alignment_weight(al.path);
+						//~ cout<<shared_leto.size()<<" "<<best_al.path.size()<<" "<<al.path.size()<<endl;
+						//~ cout<< coverage_new<<" "<<coverage_best<<" "<<coverage_consensus<<endl;
+						if(abs(coverage_consensus-coverage_new)< abs(coverage_consensus-coverage_best)){
+							best_al=al;
+							consensus=new_correction;
+							//~ cout<<"CHANGE"<<endl;
+						}
+					}
+				}
 			}else if (al.score>max_score){
 				max_score=al.score;
 				best_al=al;
@@ -1025,121 +1063,6 @@ string Aligner::alignReadOpti_correction2(const string& read, alignment& al){
 		return read;
 	}
 }
-
-
-
-
-
-
-//TODO URGENT
-//~ void Aligner::alignReadOpti_correction(const string& read, string& corrected_seq){
-	//~ exit(0);
-	//~ vector<int> path={};
-	//~ uint errors(0);
-	//~ vector<pair<pair<uint,uint>,uint>> listAnchors(getNAnchors(read,tryNumber));
-	//~ vector<int> errorsFromPreviousMapping(listAnchors.size(),-1);
-	//~ if(listAnchors.empty()){
-		//~ ++noOverlapRead;
-		//~ return;
-	//~ }
-	//~ string superRead,superReadMem;
-	//~ random_shuffle ( listAnchors.begin(), listAnchors.end() );
-	//~ while(errors<=errorsMax){
-		//~ bool found(false);
-		//~ int errorInMapping(0);
-		//~ for(uint i(0);i<listAnchors.size();++i){
-			//~ path={};
-			//~ errorInMapping=0;
-			//~ if(errorsFromPreviousMapping[i]<=(int)errors){
-				//~ if(stringMode){
-					//path=alignReadGreedyAnchorsstr(read,errors,listAnchors[i],errorInMapping);
-				//~ }else{
-					//~ path=alignReadGreedyAnchors(read,read.size(),listAnchors[i],errorInMapping);
-				//~ }
-				//~ errorsFromPreviousMapping[i]=errorInMapping;
-				//~ //MAPPING IS FOUND
-				//~ al=alignment_clean(al,read.size());
-				//~ if(not path.empty()){
-					//~ if(found){
-						//~ superRead=(recoverSuperReadsCor(path,read.size()));
-						//~ consensus(corrected_seq,superRead,read);
-					//~ }else{
-						//~ found=true;
-						//~ superRead=(recoverSuperReadsCor(path,read.size()));
-						//~ corrected_seq=superRead;
-					//~ }
-				//~ }
-			//~ }
-		//~ }
-		//~ ++errors;
-		//~ if(found){
-			//~ ++alignedRead;
-			//~ return;
-		//~ }
-	//~ }
-	//~ if(not path.empty()){
-		//~ ++alignedRead;
-	//~ }
-//~ }
-
-
-
-
-//~ void Aligner::alignReadAllOpti(const string& read, vector<vector<int>>& pathVector){
-	//~ pathVector={};
-	//~ vector<int> path;
-	//~ uint errors(0);
-	//~ vector<pair<pair<uint,uint>,uint>> listAnchors(getNAnchors(read,tryNumber));
-	//~ if(listAnchors.empty()){++noOverlapRead;return;}
-	//~ while(errors<=errorsMax){
-		//~ bool found(false);
-		//~ int errorInMapping(0);
-		//~ for(uint i(0);i<listAnchors.size();++i){
-			//~ path={};
-			//~ if(stringMode){
-				//~ path=alignReadGreedyAnchorsstr(read,errors,listAnchors[i],errorInMapping);
-			//~ }else{
-				//~ path=alignReadGreedyAnchors(read,errors,listAnchors[i],errorInMapping);
-			//~ }
-			//~ //MAPPING IS FOUND
-			//~ if(not path.empty()){
-				//~ pathVector.push_back(path);
-				//~ found=true;
-			//~ }
-		//~ }
-		//~ ++errors;
-		//~ if(found){
-			//~ ++alignedRead;
-			//~ return;
-		//~ }
-	//~ }
-//~ }
-
-
-
-//~ void Aligner::alignReadAll(const string& read, vector<vector<int>>& pathVector){
-	//~ pathVector={};
-	//~ vector<int> path;
-	//~ uint errors(0);
-	//~ vector<pair<pair<uint,uint>,uint>> listAnchors(getNAnchors(read,tryNumber));
-	//~ if(listAnchors.empty()){++noOverlapRead;return;}
-	//~ while(errors<=errorsMax){
-		//~ for(uint i(0);i<listAnchors.size();++i){
-			//~ path={};
-			//~ uint errorInMapping(0);
-			//~ if(stringMode){
-				//~ path=alignReadGreedyAnchorsstr(read,errors,listAnchors[i],errorInMapping);
-			//~ }else{
-				//~ path=alignReadGreedyAnchors(read,errors,listAnchors[i],errorInMapping);
-			//~ }
-			//~ //MAPPING IS FOUND
-			//~ if(not path.empty()){
-				//~ pathVector.push_back(path);
-			//~ }
-		//~ }
-		//~ ++errors;
-	//~ }
-//~ }
 
 
 
