@@ -73,6 +73,9 @@ double Aligner::alignment_weight(const vector<int>& path){
 
 
 
+
+
+
 //OKOK
 alignment Aligner::alignReadGreedyAnchors(const string& read, int score_max, const pair<pair<uint,uint>,uint>& anchor){
 	//~ cout<<"arga"<<endl;
@@ -924,7 +927,6 @@ string Aligner::alignReadOpti_correction(const string& read, alignment& al){
 	string consensus,new_correction;
 	vector<pair<pair<uint,uint>,uint>> listAnchors(getNAnchors(read,tryNumber));
 	if(listAnchors.empty()){
-		cerr<<">1"<<endl<<read<<endl;
 		++noOverlapRead;
 		++notAligned;
 		return read;
@@ -943,13 +945,11 @@ string Aligner::alignReadOpti_correction(const string& read, alignment& al){
 				++alignedRead;
 				return read;
 			}
-			//~ cout<<"NOOOOOOOOOOOOO"<<endl;
 		}
 		alignment_clean(al);
 		if(al.score>=max_score){
 			if(al.score==max_score and noMultiMapping){
 				new_correction=get_corrected_read(al,read);
-
 				if(consensus!=""){
 					get_consensus(consensus,new_correction,read);
 					if(consensus==read){
@@ -1003,12 +1003,10 @@ string Aligner::alignReadOpti_correction2(const string& read, alignment& al){
 				return read;
 			}
 		}
-		alignment_clean(al);
+		//~ alignment_clean(al);
 		if(al.score>=max_score){
 			if(al.score==max_score and noMultiMapping){
 				new_correction=get_corrected_read(al,read);
-
-
 			}else if (al.score>max_score){
 				max_score=al.score;
 				best_al=al;
@@ -1169,12 +1167,12 @@ void Aligner::alignReadFrom(const string& read, vector<int>& path, int unumber){
 string Aligner::get_corrected_read(const alignment& al, const string& read){
 	//~ cout<<al.score<<endl;
 	if(al.path.empty()){
-		cout<<"EMPTY"<<endl;
-		cin.get();
+		//~ cout<<"EMPTY"<<endl;
+		//~ cin.get();
 		return read;
 	}
 	if(al.unitig_number_anchored>=al.path.size()){
-		//~ cout<<"PB";
+		cout<<"P1";
 		cout<<"Should not happen"<<endl;
 		cin.get();
 		return read;
@@ -1210,37 +1208,33 @@ string Aligner::get_corrected_read(const alignment& al, const string& read){
 			consensus=inter;
 		}
 	}
-	//~ cout<<position_start<<endl;
-	//~ cout<<consensus<<endl;
+
+
 	if(position_start>=0){
-		//~ cout<<"substr"<<endl;
+		//~ cout<<"substr1"<<endl;
 		consensus=consensus.substr(position_start, read.size());
 	}else{
-		//~ cout<<"add prefix"<<endl;
+		//~ cout<<"substr2"<<endl;
 		consensus=read.substr(0,-position_start)+consensus;
-		consensus.substr(0,read.size());
+		consensus=consensus.substr(0,read.size());
 	}
 	if(consensus.size()<read.size()){
-		//~ cout<<"add suffix"<<endl;
-		//~ cout<<consensus<<endl;cin.get();
+		//~ cout<<"substr3"<<endl;
 		consensus+=read.substr(consensus.size());
-		//~ cout<<consensus<<endl;
 	}
 
-	//~ cin.get();
-	//~ if((int)missmatchNumber(read,consensus,1000)<read.size()-25){
-		//~ cout<<consensus<<endl;
-		//~ cout<<missmatchNumber(read,consensus,1000)<<endl;
-		//~ cout<<read<<endl;
-		//~ cout<<consensus<<endl;
-		//~ cin.get();
-	//~ }
+
 	int new_score(missmatchNumber(read,consensus,1000));
 	//~ cout<<new_score<<" "<<al.score<<endl;
-	if(al.score!=new_score){
-		cout<<"Should no happen"<<endl;
-		cin.get();
-	}
+	//~ if(al.score>new_score){
+		//~ cout<<"P2"<<endl;;
+		//~ cout<<al.score<<" "<<new_score<<endl;
+		//~ cout<<"Should no happen"<<endl;
+		//~ cout<<read<<"\n"<<consensus<<endl;
+
+		//~ cin.get();
+		//~ return read;
+	//~ }
 	return consensus;
 }
 
@@ -1373,12 +1367,7 @@ void Aligner::alignPartGreedy(uint indiceThread){
 				read=multiread[i].second;
 				++readNumber;
 				if(correctionMode){
-					//~ consensus="";
 					consensus=alignReadOpti_correction(read,al);
-					//~ cout<<"al"<<endl;
-					//~ consensus=get_corrected_read(al,read);
-					//~ cout<<"corr"<<endl;
-					//~ alignReadOpti_correction(read,consensus);
 					if(consensus.empty()){
 						toWrite+=header+'\n'+read+'\n';
 						//~ ++notAligned;continue;
@@ -1389,7 +1378,6 @@ void Aligner::alignPartGreedy(uint indiceThread){
 				}else if(uniqueOptimalMappingMode){
 					alignReadOpti(read,al);
 					if(al.path.empty()){
-						//~ cerr<<header+'\n'+read+'\n';
 						if(correctionMode){
 							toWrite+=header+'\n'+read+'\n';
 						}

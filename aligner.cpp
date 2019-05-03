@@ -176,34 +176,66 @@ void Aligner::getReads(vector<pair<string,string>>& reads, uint n){
 
 
 void Aligner::alignment_clean(alignment& al){
-	uint begin(0),sum(0);
+	int ref_score(al.score);
+	int begin(0),sum(0);
 	for(uint i(0);i<al.scores.size();++i){
 		sum+=al.scores[i];
 		if(sum<0){
-			cout<<"clean"<<endl;
+			//~ cout<<"clean"<<endl;
 			begin=i+1;
-			al.score=-sum;
+			al.score-=sum;
 			sum=0;
 		}
 	}
+
 	if(begin!=0 and begin<=al.unitig_number_anchored){
+		//~ cout<<"CLEAN1"<<endl;
+		//~ for(uint i(0);i<al.scores.size();++i){
+			//~ cout<<al.scores[i]<<" ";
+		//~ }
+		//~ cout<<endl;
 		al.scores.erase(al.scores.begin(),al.scores.begin()+begin);
+		//~ for(uint i(0);i<al.scores.size();++i){
+			//~ cout<<al.scores[i]<<" ";
+		//~ }
+		//~ cout<<endl;
+		//~ cin.get();
 		al.path.erase(al.path.begin(),al.path.begin()+begin);
 		al.unitig_number_anchored-=begin;
 	}
-	begin=sum=(0);
-	for(uint i(0);i<al.scores.size();++i){
-		sum+=al.scores[al.scores.size()-i];
+
+	begin=0;
+	sum=0;
+	for(uint i(0);i<al.scores.size() and al.scores.size()-i-1> al.unitig_number_anchored ;++i){
+		sum+=al.scores[al.scores.size()-i-1];
 		if(sum<0){
-			cout<<"clean"<<endl;
+			//~ cout<<al.scores.size()-i<<endl;
+			//~ cout<<al.scores[al.scores.size()-i-1]<<endl;
+			//~ cout<<"SUM"<<endl;
+			//~ cout<<sum<<endl;
+			//~ cout<<"clean"<<endl;
 			begin=i+1;
-			al.score=-sum;
+			al.score-=sum;
 			sum=0;
 		}
 	}
 	if(begin!=0){
-		al.scores.resize(al.scores.size()-begin);
+		//~ cout<<"CLEAN2"<<endl;
+		//~ for(uint i(0);i<al.scores.size();++i){
+			//~ cout<<al.scores[i]<<" ";
+		//~ }
+		//~ cout<<endl;
+		al.scores.resize((al.scores.size()-begin));
 		al.path.resize(al.path.size()-begin);
+		//~ for(uint i(0);i<al.scores.size();++i){
+			//~ cout<<al.scores[i]<<" ";
+		//~ }
+		//~ cout<<endl;
+		//~ cin.get();
+	}
+	if(al.score<ref_score){
+		cout<<"AIE"<<endl;
+		cin.get();
 	}
 }
 
