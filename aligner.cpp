@@ -245,7 +245,7 @@ int Aligner::missmatchNumber(const string& seq1, const string& seq2, uint n){
 	int score(0);
 	for(uint i(0); i<seq2.size(); ++i){
 		if(seq2[i]!=seq1[i]){
-			score-=5;//PENALTY
+			score-=10;//PENALTY
 		}else{
 			++score;
 		}

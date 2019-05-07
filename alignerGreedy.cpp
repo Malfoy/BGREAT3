@@ -74,6 +74,19 @@ double Aligner::alignment_weight(const vector<int>& path){
 
 
 
+double Aligner::alignment_variance(const vector<int>& path, double mean){
+	double res(0);
+	double base(0);
+	for(uint i(0);i<path.size();++i){
+		double diff((unitigs_weight[abs(path[i])]*(unitigs[abs(path[i])].size()-k+1))-mean);
+		res+=diff*diff;
+		base+=(unitigs[abs(path[i])].size()-k+1);
+	}
+	return res/(base*base);
+}
+
+
+
 
 vector<int> shared_unitigs_among_path(vector<int> path1,vector<int> path2){
 	vector<int> res;
@@ -884,7 +897,9 @@ void get_consensus( string& consensus,const string& newread,const string& actual
 void Aligner::alignReadOpti(const string& read, alignment& al, bool perfect=false){
 	al.path={};
 	alignment best_al;
-	int max_score((int)read.size()-5*errorsMax);
+	//~ int max_score((int)read.size()-5*errorsMax);
+	int max_score(read.size()*errorsMax);
+	max_score/=100;
 	//~ cout<<"ARO"<<max_score<<endl;
 	vector<pair<pair<uint,uint>,uint>> listAnchors(getNAnchors(read,tryNumber));
 	if(listAnchors.empty()){
@@ -940,7 +955,9 @@ void Aligner::alignReadOpti(const string& read, alignment& al, bool perfect=fals
 string Aligner::alignReadOpti_correction(const string& read, alignment& al){
 	al.path={};
 	alignment best_al;
-	int max_score(read.size()-5*errorsMax-1);
+	//~ int max_score(read.size()-5*errorsMax-1);
+	int max_score(read.size()*errorsMax);
+	max_score/=100;
 	string consensus,new_correction;
 	vector<pair<pair<uint,uint>,uint>> listAnchors(getNAnchors(read,tryNumber));
 	if(listAnchors.empty()){
@@ -998,7 +1015,9 @@ string Aligner::alignReadOpti_correction(const string& read, alignment& al){
 string Aligner::alignReadOpti_correction2(const string& read, alignment& al){
 	al.path={};
 	alignment best_al;
-	int max_score(read.size()-5*errorsMax-1);
+	//~ int max_score(read.size()-5*errorsMax-1);
+	int max_score(read.size()*errorsMax);
+	max_score/=100;
 	string consensus,new_correction;
 	vector<int> shared_leto;
 	vector<pair<pair<uint,uint>,uint>> listAnchors(getNAnchors(read,tryNumber));
@@ -1022,7 +1041,7 @@ string Aligner::alignReadOpti_correction2(const string& read, alignment& al){
 				return read;
 			}
 		}
-		//~ alignment_clean(al);
+		alignment_clean(al);
 		if(al.score>=max_score){
 			if(al.score==max_score and noMultiMapping){
 				new_correction=get_corrected_read(al,read);
@@ -1037,13 +1056,17 @@ string Aligner::alignReadOpti_correction2(const string& read, alignment& al){
 						double coverage_consensus=alignment_weight(shared_leto);
 						double coverage_best=alignment_weight(best_al.path);
 						double coverage_new=alignment_weight(al.path);
-						//~ cout<<shared_leto.size()<<" "<<best_al.path.size()<<" "<<al.path.size()<<endl;
-						//~ cout<< coverage_new<<" "<<coverage_best<<" "<<coverage_consensus<<endl;
-						if(abs(coverage_consensus-coverage_new)< abs(coverage_consensus-coverage_best)){
-							best_al=al;
-							consensus=new_correction;
-							//~ cout<<"CHANGE"<<endl;
+						double diff(coverage_consensus-coverage_new);
+						if(abs(coverage_new-coverage_consensus)<abs(coverage_best-coverage_consensus)){
+							if(abs(diff)/sqrt(alignment_variance(al.path,coverage_consensus))> 3 ){
+								best_al=al;
+								consensus=new_correction;
+							}
+						}else{
+							get_consensus(consensus,new_correction,read);
 						}
+					}else{
+						get_consensus(consensus,new_correction,read);
 					}
 				}
 			}else if (al.score>max_score){
@@ -1314,7 +1337,6 @@ void Aligner::alignPartGreedy(uint indiceThread){
 					//~ path=getcleanPaths(path,false,true);
 					//~ printPath(path);
 					superRead=(recoverSuperReadsNoStr(al.path,0));
-					//~ cout<<superRead<<endl;cin.get();
 					if(superRead!=""){
 						if(printAlignment){
 							toWrite+=header+'\n'+superRead+'\n';
