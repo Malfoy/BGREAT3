@@ -271,6 +271,7 @@ public:
 	//~ uint mapOnLeftEndGreedy(const string &read, vector<uNumber>& path, const pair<kmer, uint>& overlap , uint errors);
 	//~ vector<uNumber> alignReadExhaustive(const string& read, bool& overlapFound, uint errors);
 	int checkEndGreedy(const string& read, const pair<kmer, uint>& overlap, alignment& path, int max_score);
+	int checkEndGreedy(const string& read, const pair<string, uint>& overlap, alignment& path, int max_score);
 	//~ string readUnitig(uint position);
 	vector<pair<string,uNumber>> getBegin(kmer);
 	vector<pair<string,uNumber>> getEnd(kmer);
@@ -300,7 +301,7 @@ public:
 	//~ uint coverGreedyCache(const string& read, const vector<overlapStruct>& listOverlap, const uint start, uint end, vector<uNumber>& path, uint  errors, bool& ended);
 	//~ vector<overlapStruct> getListOverlapCache(const string& read);
 	//~ uint checkEndGreedyCache(const string& read, overlapStruct& overlap, vector<uNumber>& path, uint errors);
-	int checkBeginGreedyCache(const string& read, overlapStruct& overlap, vector<uNumber>& path, int score);
+	//~ int checkBeginGreedyCache(const string& read, overlapStruct& overlap, vector<uNumber>& path, int score);
 	//~ uint checkPairCache(const overlapStruct& overlap1, const overlapStruct& overlap2, const string& read, uNumber& number, uint errorsAllowed);
 	//~ pair<uint,uint> mapOnRightCache(const string &read, vector<uNumber>& path, const overlapStruct& overlap, const  vector<overlapStruct>& listOverlap, bool& ended,uint start, uint errors);
 	vector<pair<kmer,uint>> getNOverlap(const string& read, uint n);
@@ -312,7 +313,6 @@ public:
 	//~ vector<pair<string,uNumber>> getBeginOpti(kmer bin, uNumber last);
 	//~ vector<pair<string,uNumber>> getEndOpti(kmer bin, uNumber last);
 	string printPath(const vector<int32_t>& path);
-	//~ vector<uNumber> alignReadGreedyAnchors(const string& read, bool& overlapFound, uint errorMax, bool& rc, bool& nooverlap);
 	vector<pair<pair<uint,uint>,uint>> getNAnchors(const string& read,uint n);
 	string recoverSuperReads(const vector<uNumber>& numbers);
 	//~ pair<string,string> recoverSuperReadsPaired( const vector<uNumber>& vec, vector<uNumber>& vec2);
@@ -328,10 +328,10 @@ public:
 	vector<pair<pair<uint,uint>,uint>> getNAnchorsstr(const string& read,uint n);
 	vector<pair<string,uNumber>> getBegin(string bin);
 	vector<pair<string,uNumber>> getEnd(string bin);
-	//~ vector<uNumber> alignReadGreedyAnchorsstr(const string& read, bool& overlapFound, uint errorMax, bool& rc, bool& noOverlap);
 	int checkBeginGreedy(const string& read,const pair<kmer, uint>& overlap, alignment& al, int score_max);
+	int checkBeginGreedy(const string& read,const pair<string, uint>& overlap, alignment& al, int score_max);
 	alignment alignReadGreedyAnchors(const string& read, int score_max, const pair<pair<uint,uint>,uint>& anchor);
-	//~ uint checkEndGreedy(const string& read,const pair<string, uint>& overlap, vector<uNumber>& path, uint errors);
+	alignment alignReadGreedyAnchorsstr(const string& read, int score_max, const pair<pair<uint,uint>,uint>& anchor);
 	//~ uint mapOnLeftEndGreedy(const string &read, vector<uNumber>& path, const pair<string, uint>& overlap , uint errors);
 	//~ uint mapOnRightEndGreedy(const string &read, vector<uNumber>& path, const pair<string, uint>& overlap , uint errors);
 	bool compactVectors( vector<uNumber>& numbers1, vector<uNumber>& numbers2);
@@ -339,8 +339,6 @@ public:
 	void indexUnitigsAuxStrfull();
 	void fillIndicesstrbutanchors();
 	vector<pair<pair<uint,uint>,uint>> getNAnchorsnostr(const string& read, uint n);
-	//~ vector<uNumber> alignReadGreedyAnchors(const string& read, uint errorMax,const pair<pair<uint,uint>,uint>& anchor, uint& error);;
-	//~ vector<uNumber> alignReadGreedyAnchorsstr(const string& read, uint errorMax, const pair<pair<uint,uint>,uint>& anchor,uint& error);
 	void alignReadOpti(const string& read, alignment& al, bool perfect);
 	//~ vector<int> inclued(vector<int>& v1, vector<int>& v2);
 	//~ void getReads2(vector<pair<string,string>>& reads, uint n);
