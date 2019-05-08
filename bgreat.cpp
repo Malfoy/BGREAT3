@@ -60,8 +60,8 @@ using namespace std;
 int main(int argc, char ** argv){
 	// initRc();
 	string reads, pairedReads, unitigs("unitig.fa"),pathFile("paths"), notAlignedFile("notAligned.fa");
-	int errors(5), threads(1), ka(31), c, effort(1000),dogMode(1);
-	int anchorSize(31),ocurence_anchors(1),Bulles(0);
+	int errors(50), threads(1), ka(31), c, effort(1000),dogMode(1);
+	int anchorSize(21),ocurence_anchors(1),Bulles(0);
 	bool brute(false),fastq(false),correctionMode(false),orderKeep(false),vectorMode(false),preciseOutput(false),multi(false),printAlignment(false),allOptimalMapping(false),allMapping(false),compressOutput(false),anyOptimalMapping(false),compressionMode(false);
 	float ratioe(1);
 	while ((c = getopt (argc, argv, "u:x:k:g:m:t:e:f:a:i:r:o:bqcOpMPABCFzZ:")) != -1){
@@ -159,8 +159,8 @@ int main(int argc, char ** argv){
 		<<"-f output file (paths)"<<endl
 		<<"-q if  read file are FASTQ"<<endl
 		<<"-O to keep order of the reads"<<endl
-		<<"-a anchors length (31)"<<endl
-		<<"-m number of missmatch allowed (5)"<<endl
+		<<"-a anchors length (21)"<<endl
+		<<"-m minimial percent read mapped (50)"<<endl
 		<<"-t number of threads used (1)"<<endl
 		<<"-c to output corrected reads"<<endl
 		<<"-z to compress output file"<<endl

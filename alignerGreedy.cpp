@@ -118,10 +118,10 @@ alignment Aligner::alignReadGreedyAnchors(const string& read, int score_max, con
 			int local_score=(missmatchNumber(read.substr(positionRead-positionUnitig,unitig.size()),unitig,score_max));
 			score=local_score;
 			if(score>=score_min){
-				score+=(checkBeginGreedy(read,{str2num(unitig.substr(0,k-1)),positionRead-positionUnitig},al_begin,score_min));//TODO
+				score+=(checkBeginGreedy(read,{str2num(unitig.substr(0,k-1)),positionRead-positionUnitig},al_begin,score_min));
 				if(score>=score_min){
-					score+=(checkEndGreedy(read,{str2num(unitig.substr(unitig.size()-k+1,k-1)),positionRead-positionUnitig+unitig.size()},al_end,score_max-score));//TODO
-					if(score>=score_max){//TODO
+					score+=(checkEndGreedy(read,{str2num(unitig.substr(unitig.size()-k+1,k-1)),positionRead-positionUnitig+unitig.size()},al_end,score_max-score));
+					if(score>=score_max){
 						reverse(al_begin.path.begin(),al_begin.path.end());
 						reverse(al_begin.scores.begin(),al_begin.scores.end());
 						al.path=al_begin.path;
@@ -140,7 +140,6 @@ alignment Aligner::alignReadGreedyAnchors(const string& read, int score_max, con
 			//CASE 2 : unitig overap read
 			//~ cout<<"2:"<<endl;
 			if(read.size()-positionRead+positionUnitig<k){
-				//~ cout<<"nope"<<endl;
 				al.score=-1000;
 				return al;
 			}
@@ -231,10 +230,10 @@ alignment Aligner::alignReadGreedyAnchorsstr(const string& read, int score_max, 
 			int local_score=(missmatchNumber(read.substr(positionRead-positionUnitig,unitig.size()),unitig,score_max));
 			score=local_score;
 			if(score>=score_min){
-				score+=(checkBeginGreedy(read,{(unitig.substr(0,k-1)),positionRead-positionUnitig},al_begin,score_min));//TODO
+				score+=(checkBeginGreedy(read,{(unitig.substr(0,k-1)),positionRead-positionUnitig},al_begin,score_min));
 				if(score>=score_min){
-					score+=(checkEndGreedy(read,{(unitig.substr(unitig.size()-k+1,k-1)),positionRead-positionUnitig+unitig.size()},al_end,score_max-score));//TODO
-					if(score>=score_max){//TODO
+					score+=(checkEndGreedy(read,{(unitig.substr(unitig.size()-k+1,k-1)),positionRead-positionUnitig+unitig.size()},al_end,score_max-score));
+					if(score>=score_max){
 						reverse(al_begin.path.begin(),al_begin.path.end());
 						reverse(al_begin.scores.begin(),al_begin.scores.end());
 						al.path=al_begin.path;
@@ -253,7 +252,6 @@ alignment Aligner::alignReadGreedyAnchorsstr(const string& read, int score_max, 
 			//CASE 2 : unitig overap read
 			//~ cout<<"2:"<<endl;
 			if(read.size()-positionRead+positionUnitig<k){
-				//~ cout<<"nope"<<endl;
 				al.score=-1000;
 				return al;
 			}
@@ -400,14 +398,20 @@ int Aligner::checkBeginGreedy(const string& read,const pair<kmer, uint>& overlap
 		}
 	}
 	if(best_score>score_min){
+		alignment current_al(al);
 		al.path.push_back(rangeUnitigs[indiceMinMiss].second);
 		al.scores.push_back(best_score);
 		if(ended){
 			return best_score;
 		}
-		return best_score+checkBeginGreedy(read,{nextOverlap,overlap.second-(nextUnitig.size()-k+1)}, al,score_max-best_score);
+		int recur_score(checkBeginGreedy(read,{nextOverlap,overlap.second-(nextUnitig.size()-k+1)}, al,score_max-best_score));
+		if(recur_score>=0){
+			return best_score+recur_score;
+		}
+		al=current_al;
+		return best_score;
 	}
-	return best_score;
+	return 0;
 }
 
 
@@ -420,7 +424,7 @@ int Aligner::checkBeginGreedy(const string& read,const pair<string, uint>& overl
 	int best_score(-1000),indiceMinMiss(9);
 	bool ended(false),equal(false);
 	int offset(0);
-	string nextOverlap(0);
+	string nextOverlap;
 	for(uint i(0); i<rangeUnitigs.size(); ++i){
 		unitig=rangeUnitigs[i].first;
 		if(unitig.size()-k+1>=readLeft.size()){
@@ -455,78 +459,29 @@ int Aligner::checkBeginGreedy(const string& read,const pair<string, uint>& overl
 				nextUnitig=unitig;
 				nextOverlap=overlapNum;
 			}
-
 		}
 	}
 	if(best_score>score_min){
+		alignment current_al(al);
 		al.path.push_back(rangeUnitigs[indiceMinMiss].second);
 		al.scores.push_back(best_score);
 		if(ended){
 			return best_score;
 		}
-		return best_score+checkBeginGreedy(read,{nextOverlap,overlap.second-(nextUnitig.size()-k+1)}, al,score_max-best_score);
+		int recur_score(checkBeginGreedy(read,{nextOverlap,overlap.second-(nextUnitig.size()-k+1)}, al,score_max-best_score));
+		if(recur_score>=0){
+			return best_score+recur_score;
+		}
+		al=current_al;
+		return best_score;
 	}
-	return best_score;
+	return 0;
 }
 
 
 
 //OKOK
 int Aligner::checkEndGreedy(const string& read, const pair<kmer, uint>& overlap, alignment& al, int max_score){
-	string readLeft(read.substr(overlap.second)),unitig,nextUnitig;
-	if((int)readLeft.size()<max_score){return -1000;}
-	vector<pair<string,uNumber>> rangeUnitigs;
-	rangeUnitigs=(getBegin(overlap.first));
-	int best_score(-1000),indiceMinMiss(9);
-	bool ended(false),equal(false);
-	string nextOverlap;
-	for(uint i(0); i<rangeUnitigs.size(); ++i){
-		unitig=rangeUnitigs[i].first;
-		if(unitig.size()-k+1>=readLeft.size()){
-			int score(missmatchNumber(unitig.substr(k-1,readLeft.size()),readLeft, score_min));
-			if(score==readLeft.size()){
-				al.path.push_back(rangeUnitigs[i].second);
-				al.scores.push_back(score);
-				return score;
-			}else if(score==best_score){
-				equal=true;
-			}else if(score>best_score){
-				best_score=score;
-				indiceMinMiss=i;
-				ended=true;
-				equal=false;
-			}
-		}else{
-			int score(missmatchNumber(unitig.substr(k-1),readLeft.substr(0,unitig.size()-k+1), score_min));
-			if(score==unitig.size()-k+1){
-				al.path.push_back(rangeUnitigs[i].second);
-				al.scores.push_back(score);
-				return score+checkEndGreedy(read, {(unitig.substr(unitig.size()-k+1,k-1)),overlap.second+(unitig.size()-k+1)},  al,max_score-score);
-			}else if(score==best_score){
-				equal=true;
-			}else if(score>best_score){
-				string overlapNum((unitig.substr(unitig.size()-k+1,k-1)));
-				best_score=score;
-				indiceMinMiss=i;
-				nextOverlap=overlapNum;
-				nextUnitig=unitig;
-				ended=false;
-				equal=false;
-			}
-		}
-	}
-	if(best_score>score_min){
-		al.path.push_back(rangeUnitigs[indiceMinMiss].second);
-		al.scores.push_back(best_score);
-		if(ended){return best_score;}
-		return best_score+checkEndGreedy(read, {nextOverlap,overlap.second+(nextUnitig.size()-k+1)},al, max_score-best_score);
-	}
-	return best_score;
-}
-
-
-
-int Aligner::checkEndGreedy(const string& read, const pair<string, uint>& overlap, alignment& al, int max_score){
 	string readLeft(read.substr(overlap.second)),unitig,nextUnitig;
 	if((int)readLeft.size()<max_score){return -1000;}
 	vector<pair<string,uNumber>> rangeUnitigs;
@@ -560,6 +515,66 @@ int Aligner::checkEndGreedy(const string& read, const pair<string, uint>& overla
 				equal=true;
 			}else if(score>best_score){
 				kmer overlapNum(str2num(unitig.substr(unitig.size()-k+1,k-1)));
+				best_score=score;
+				indiceMinMiss=i;
+				nextOverlap=overlapNum;
+				nextUnitig=unitig;
+				ended=false;
+				equal=false;
+			}
+		}
+	}
+	if(best_score>score_min){
+		alignment current_al(al);
+		al.path.push_back(rangeUnitigs[indiceMinMiss].second);
+		al.scores.push_back(best_score);
+		if(ended){return best_score;}
+		int score_recur(checkEndGreedy(read, {nextOverlap,overlap.second+(nextUnitig.size()-k+1)},al, max_score-best_score));
+		if(score_recur>=0){
+			return best_score+score_recur;
+		}
+		al=current_al;
+		return best_score;
+	}
+	return 0;
+}
+
+
+
+int Aligner::checkEndGreedy(const string& read, const pair<string, uint>& overlap, alignment& al, int max_score){
+	string readLeft(read.substr(overlap.second)),unitig,nextUnitig;
+	if((int)readLeft.size()<max_score){return -1000;}
+	vector<pair<string,uNumber>> rangeUnitigs;
+	rangeUnitigs=(getBegin(overlap.first));
+	int best_score(-1000),indiceMinMiss(9);
+	bool ended(false),equal(false);
+	string nextOverlap;
+	for(uint i(0); i<rangeUnitigs.size(); ++i){
+		unitig=rangeUnitigs[i].first;
+		if(unitig.size()-k+1>=readLeft.size()){
+			int score(missmatchNumber(unitig.substr(k-1,readLeft.size()),readLeft, score_min));
+			if(score==readLeft.size()){
+				al.path.push_back(rangeUnitigs[i].second);
+				al.scores.push_back(score);
+				return score;
+			}else if(score==best_score){
+				equal=true;
+			}else if(score>best_score){
+				best_score=score;
+				indiceMinMiss=i;
+				ended=true;
+				equal=false;
+			}
+		}else{
+			int score(missmatchNumber(unitig.substr(k-1),readLeft.substr(0,unitig.size()-k+1), score_min));
+			if(score==unitig.size()-k+1){
+				al.path.push_back(rangeUnitigs[i].second);
+				al.scores.push_back(score);
+				return score+checkEndGreedy(read, {(unitig.substr(unitig.size()-k+1,k-1)),overlap.second+(unitig.size()-k+1)},  al,max_score-score);
+			}else if(score==best_score){
+				equal=true;
+			}else if(score>best_score){
+				string overlapNum((unitig.substr(unitig.size()-k+1,k-1)));
 				best_score=score;
 				indiceMinMiss=i;
 				nextOverlap=overlapNum;
@@ -793,7 +808,7 @@ string Aligner::alignReadOpti_correction2(const string& read, alignment& al){
 						double coverage_new=alignment_weight(al.path);
 						double diff(coverage_consensus-coverage_new);
 						if(abs(coverage_new-coverage_consensus)<abs(coverage_best-coverage_consensus)){
-							if(abs(diff)/sqrt(alignment_variance(al.path,coverage_consensus))> 3 ){
+							if(abs(diff)/sqrt(alignment_variance(al.path,coverage_consensus))>= 3 ){
 								best_al=al;
 								consensus=new_correction;
 							}
@@ -1049,7 +1064,7 @@ void Aligner::alignPartGreedy(uint indiceThread){
 				read=multiread[i].second;
 				++readNumber;
 				if(correctionMode){
-					consensus=alignReadOpti_correction(read,al);
+					consensus=alignReadOpti_correction2(read,al);
 					if(consensus.empty()){
 						toWrite+=header+'\n'+read+'\n';
 						//~ ++notAligned;continue;
