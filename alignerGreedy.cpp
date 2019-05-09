@@ -352,6 +352,8 @@ vector<uNumber> reverseVector(const vector<uNumber>& V){
 
 //OKOK
 int Aligner::checkBeginGreedy(const string& read,const pair<kmer, uint>& overlap, alignment& al, int score_max){
+	//~ cout<<"CBG"<<endl;
+	//~ cout<<(int)overlap.second<<" "<<score_max<<endl;
 	if((int)overlap.second<score_max){return -1000;}
 	string readLeft(read.substr(0,overlap.second)),unitig,nextUnitig;
 	vector<pair<string,uNumber>> rangeUnitigs;
@@ -482,14 +484,19 @@ int Aligner::checkBeginGreedy(const string& read,const pair<string, uint>& overl
 
 //OKOK
 int Aligner::checkEndGreedy(const string& read, const pair<kmer, uint>& overlap, alignment& al, int max_score){
+	//~ cout<<"CEG"<<endl;
 	string readLeft(read.substr(overlap.second)),unitig,nextUnitig;
+	//~ cout<<readLeft.size()<<" "<<max_score<<endl;
 	if((int)readLeft.size()<max_score){return -1000;}
+
 	vector<pair<string,uNumber>> rangeUnitigs;
 	rangeUnitigs=(getBegin(overlap.first));
 	int best_score(-1000),indiceMinMiss(9);
 	bool ended(false),equal(false);
 	kmer nextOverlap(0);
+	//~ cout<<rangeUnitigs.size()<<endl;
 	for(uint i(0); i<rangeUnitigs.size(); ++i){
+		//~ cout<<"CEG1"<<endl;
 		unitig=rangeUnitigs[i].first;
 		if(unitig.size()-k+1>=readLeft.size()){
 			int score(missmatchNumber(unitig.substr(k-1,readLeft.size()),readLeft, score_min));
@@ -651,6 +658,7 @@ void get_consensus( string& consensus,const string& newread,const string& actual
 
 //OK
 void Aligner::alignReadOpti(const string& read, alignment& al, bool perfect=false){
+	//~ cout<<"GO READ"<<endl;
 	al.path={};
 	alignment best_al;
 	//~ int max_score((int)read.size()-5*errorsMax);
@@ -675,6 +683,7 @@ void Aligner::alignReadOpti(const string& read, alignment& al, bool perfect=fals
 				++alignedRead;
 				return;
 			}
+
 		}
 		alignment_clean(al);
 		if(al.score>=max_score){
@@ -699,6 +708,7 @@ void Aligner::alignReadOpti(const string& read, alignment& al, bool perfect=fals
 		++alignedRead;
 	}else{
 		++notAligned;
+		//~ cout<<"FAIL"<<endl;cin.get();
 	}
 }
 
@@ -862,41 +872,26 @@ void Aligner::alignReadFrom(const string& read, vector<int>& path, int unumber){
 
 
 string Aligner::get_corrected_read(const alignment& al, const string& read){
-	//~ cout<<al.score<<endl;
 	if(al.path.empty()){
-		//~ cout<<"EMPTY"<<endl;
-		//~ cin.get();
 		return read;
 	}
 	if(al.unitig_number_anchored>=al.path.size()){
-		cout<<"P1";
-		cout<<"Should not happen"<<endl;
-		cin.get();
+		//~ cout<<"P1";
+		//~ cout<<"Should not happen"<<endl;
+		//~ cin.get();
 		return read;
 	}
-	//~ cout<<al.path.size()<<" "<<al.unitig_number_anchored<<endl;
-	//~ cout<<1<<endl;
-
-	//~ cout<<al.position_anchors_in_unitig<<" "<<al.position_anchors_in_read<<endl;
 	string consensus(getUnitig(al.path[0])),unitig,inter;
 	int position_start(0),nucleotides_in_path(0);
 	if(al.unitig_number_anchored==0){
-		//~ cout<<"found"<<endl;
 		position_start=nucleotides_in_path+al.position_anchors_in_unitig-al.position_anchors_in_read;
 	}
 	nucleotides_in_path+=consensus.size()-k+1;
-	//~ cout<<2<<endl;
 	for(uint i(1); i<al.path.size(); ++i){
-		//~ cout<<3<<endl;
 		unitig=(getUnitig(al.path[i]));
 		inter=(compactionEndNoRC(consensus, unitig, k-1));
-
-		//~ cout<<"NIP"<<nucleotides_in_path<<endl;
 		if(al.unitig_number_anchored==i){
-			//~ cout<<"found"<<endl;
-			//~ cout<<nucleotides_in_path<<" "<<al.position_anchors_in_read<<endl;;
 			position_start=nucleotides_in_path+al.position_anchors_in_unitig-al.position_anchors_in_read;
-			//~ cout<<position_start<<endl;
 		}
 		nucleotides_in_path+=unitig.size()-k+1;
 		if(inter.empty()){
@@ -905,33 +900,16 @@ string Aligner::get_corrected_read(const alignment& al, const string& read){
 			consensus=inter;
 		}
 	}
-
-
 	if(position_start>=0){
-		//~ cout<<"substr1"<<endl;
 		consensus=consensus.substr(position_start, read.size());
 	}else{
-		//~ cout<<"substr2"<<endl;
 		consensus=read.substr(0,-position_start)+consensus;
 		consensus=consensus.substr(0,read.size());
 	}
 	if(consensus.size()<read.size()){
-		//~ cout<<"substr3"<<endl;
 		consensus+=read.substr(consensus.size());
 	}
-
-
 	int new_score(missmatchNumber(read,consensus,1000));
-	//~ cout<<new_score<<" "<<al.score<<endl;
-	//~ if(al.score>new_score){
-		//~ cout<<"P2"<<endl;;
-		//~ cout<<al.score<<" "<<new_score<<endl;
-		//~ cout<<"Should no happen"<<endl;
-		//~ cout<<read<<"\n"<<consensus<<endl;
-
-		//~ cin.get();
-		//~ return read;
-	//~ }
 	return consensus;
 }
 

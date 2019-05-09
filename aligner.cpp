@@ -242,9 +242,16 @@ void Aligner::alignment_clean(alignment& al){
 
 
 int Aligner::missmatchNumber(const string& seq1, const string& seq2, uint n){
+	//~ if(seq1!=seq2){
+		//~ cout<<seq1<<endl;
+		//~ cout<<seq2<<endl;
+	//~ }else{
+		//~ cout<<"ok"<<endl;
+	//~ }
+
 	int score(0);
 	for(uint i(0); i<seq2.size(); ++i){
-		if(seq2[i]!=seq1[i]){
+		if(seq2[i]!=seq1[i] or seq2[i]=='N' or seq1[i]=='N' ){
 			score-=10;//PENALTY
 		}else{
 			++score;
@@ -284,7 +291,6 @@ int Aligner::missmatchNumber(const string& seq1, const string& seq2, uint n){
 
 //TODO replace vector by struct
 vector<pair<string,uNumber>> Aligner::getEnd(kmer bin){
-	//~ cout<<"ge"<<endl;
 	vector<pair<string,uNumber>> result;
 	kmer rc(rcb(bin,k-1));
 	string unitig;

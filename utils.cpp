@@ -144,10 +144,10 @@ kmer str2num(const string& str){
 	for(uint i(0);i<str.size();i++){
 		res<<=2;
 		switch (str[i]){
-			case 'A':res+=0;break;
+			case 'T':res+=3;break;
 			case 'C':res+=1;break;
 			case 'G':res+=2;break;
-			default:res+=3;break;
+			default :break;
 		}
 	}
 	return res;
