@@ -59,8 +59,8 @@ double Aligner::alignment_variance(const vector<int>& path, double mean){
 	double res(0);
 	double base(0);
 	for(uint i(0);i<path.size();++i){
-		double diff((unitigs_weight[abs(path[i])]*(unitigs[abs(path[i])].size()-k+1))-mean);
-		res+=diff*diff;
+		double diff((unitigs_weight[abs(path[i])]-mean));
+		res+=(diff*diff)*(unitigs[abs(path[i])].size()-k+1);
 		base+=(unitigs[abs(path[i])].size()-k+1);
 	}
 	return res/(base*base);
@@ -747,10 +747,10 @@ string Aligner::alignReadOpti_correction(const string& read, alignment& al){
 				new_correction=get_corrected_read(al,read);
 				if(consensus!=""){
 					get_consensus(consensus,new_correction,read);
-					if(consensus==read){
-						return read;
-					}else{
-					}
+					//~ if(consensus==read){
+						//~ return read;
+					//~ }else{
+					//~ }
 				}else{
 					consensus=new_correction;
 				}
@@ -803,29 +803,34 @@ string Aligner::alignReadOpti_correction2(const string& read, alignment& al){
 		}
 		alignment_clean(al);
 		if(al.score>=max_score){
-			if(al.score==max_score and noMultiMapping){
+			if(al.score==max_score){
 				new_correction=get_corrected_read(al,read);
 				if(consensus==""){
 					consensus=new_correction;
-					if(consensus==read){
-						return read;
-					}
+					//~ if(consensus==read){
+						//~ return read;
+					//~ }
 				}else{
 					shared_leto=shared_unitigs_among_path(best_al.path,al.path);
-					if(shared_leto.size()<best_al.path.size() and shared_leto.size()<al.path.size() ){
+					if(shared_leto.size()<best_al.path.size() and shared_leto.size()<al.path.size() and shared_leto.size()>0){
 						double coverage_consensus=alignment_weight(shared_leto);
 						double coverage_best=alignment_weight(best_al.path);
 						double coverage_new=alignment_weight(al.path);
-						double diff(coverage_consensus-coverage_new);
 						if(abs(coverage_new-coverage_consensus)<abs(coverage_best-coverage_consensus)){
-							if(abs(diff)/sqrt(alignment_variance(al.path,coverage_consensus))>= 3 ){
+							double diff(coverage_consensus-coverage_new);
+							if(abs(diff)/sqrt((alignment_variance(best_al.path,coverage_best))+(alignment_variance(al.path,coverage_new)))>= 3 ){
 								best_al=al;
 								consensus=new_correction;
+							}else{
+								// VERY CLOSE ALIGNMENT DO CONSENSUS
+								get_consensus(consensus,new_correction,read);
 							}
 						}else{
+							//WORSE ALIGNMENT BECAUSE OF WEIGHT
 							get_consensus(consensus,new_correction,read);
 						}
 					}else{
+						//NOTHNING IN COMMON DO NOT DO ANYTHING
 						get_consensus(consensus,new_correction,read);
 					}
 				}
