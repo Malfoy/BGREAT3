@@ -881,9 +881,6 @@ string Aligner::get_corrected_read(const alignment& al, const string& read){
 		return read;
 	}
 	if(al.unitig_number_anchored>=al.path.size()){
-		//~ cout<<"P1";
-		//~ cout<<"Should not happen"<<endl;
-		//~ cin.get();
 		return read;
 	}
 	string consensus(getUnitig(al.path[0])),unitig,inter;
@@ -920,6 +917,37 @@ string Aligner::get_corrected_read(const alignment& al, const string& read){
 
 
 
+int64_t Aligner::get_starting_position(const alignment& al){
+	if(al.path.empty()){
+		return 999999999999;
+	}
+	if(al.unitig_number_anchored>=al.path.size()){
+		return 999999999999;
+	}
+	string consensus(getUnitig(al.path[0])),unitig,inter;
+	int position_start(0),nucleotides_in_path(0);
+	if(al.unitig_number_anchored==0){
+		position_start=nucleotides_in_path+al.position_anchors_in_unitig-al.position_anchors_in_read;
+	}
+	nucleotides_in_path+=consensus.size()-k+1;
+	for(uint i(1); i<al.path.size(); ++i){
+		unitig=(getUnitig(al.path[i]));
+		inter=(compactionEndNoRC(consensus, unitig, k-1));
+		if(al.unitig_number_anchored==i){
+			position_start=nucleotides_in_path+al.position_anchors_in_unitig-al.position_anchors_in_read;
+		}
+		nucleotides_in_path+=unitig.size()-k+1;
+		if(inter.empty()){
+			cout<<i<<endl;cout<<"bug compaction super reads"<<endl;return {};
+		}else{
+			consensus=inter;
+		}
+	}
+	return position_start;
+}
+
+
+
 
 void Aligner::alignPartGreedy(uint indiceThread){
 	vector<pair<string,string>> multiread;
@@ -952,7 +980,7 @@ void Aligner::alignPartGreedy(uint indiceThread){
 				read=multiread[i].second;
 				header2=multiread[i+1].first;
 				read2=multiread[i+1].second;
-				readNumber+=2;
+				//~ readNumber+=2;
 				bool rc(false), noOverlap(false), overlapFound(false);
 				alignReadOpti(read,al);
 				alignReadOpti(read2,al2);
@@ -1045,7 +1073,7 @@ void Aligner::alignPartGreedy(uint indiceThread){
 			for(uint i(0);i<multiread.size();i++){
 				header=multiread[i].first;
 				read=multiread[i].second;
-				++readNumber;
+				//~ ++readNumber;
 				if(correctionMode){
 					consensus=alignReadOpti_correction2(read,al);
 					if(consensus.empty()){
@@ -1058,9 +1086,7 @@ void Aligner::alignPartGreedy(uint indiceThread){
 				}else if(uniqueOptimalMappingMode){
 					alignReadOpti(read,al);
 					if(al.path.empty()){
-						if(correctionMode){
-							toWrite+=header+'\n'+read+'\n';
-						}
+						toWrite+='\n';
 						++notAligned;
 						continue;
 					}
@@ -1078,7 +1104,8 @@ void Aligner::alignPartGreedy(uint indiceThread){
 							if(headerNeeded){
 								toWrite+=header+'\n'+superRead+'\n';
 							}else{
-								toWrite+=superRead+'\n';
+								toWrite+=to_string(get_starting_position(al))+';'+to_string(read.size())+';'+superRead+'\n';
+								//READ ENCODING
 							}
 						}
 					}

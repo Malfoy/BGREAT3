@@ -79,6 +79,10 @@ void Aligner::getReads(vector<pair<string,string>>& reads, uint n){
 					}
 				}
 				if(!fail){
+					readNumber++;
+					//~ if(not correctionMode){
+						//~ header=to_string(readNumber);
+					//~ }
 					reads.push_back({header,read});
 				}
 			}
@@ -103,6 +107,10 @@ void Aligner::getReads(vector<pair<string,string>>& reads, uint n){
 					}
 					if(!fail){
 						//~ if(read.size()>k){
+							readNumber++;
+							//~ if(not correctionMode){
+								//~ header=to_string(readNumber);
+							//~ }
 							reads.push_back({header,read});
 						//~ }
 					}
@@ -124,6 +132,10 @@ void Aligner::getReads(vector<pair<string,string>>& reads, uint n){
 						}
 						if(!fail){
 							//~ if(read.size()>k){
+								readNumber++;
+								//~ if(not correctionMode){
+									//~ header=to_string(readNumber);
+								//~ }
 								reads.push_back({header,read});
 							//~ }
 						}
@@ -2588,19 +2600,4 @@ string Aligner::path2nuc(const vector<uNumber>& path){
 	res+=":";
 	return res;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

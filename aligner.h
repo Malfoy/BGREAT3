@@ -372,6 +372,7 @@ public:
 	string alignReadOpti_correction2(const string& read, alignment& al);
 	double alignment_weight(const vector<int>& path);
 	double alignment_variance(const vector<int>& path, double mean);
+	int64_t get_starting_position(const alignment& al);
 
 };
 
