@@ -39,10 +39,6 @@ uint trimingBases(0);
 
 
 
-
-
-
-
 double Aligner::alignment_weight(const vector<int>& path){
 	double res(0);
 	double base(0);
@@ -1104,7 +1100,7 @@ void Aligner::alignPartGreedy(uint indiceThread){
 							if(headerNeeded){
 								toWrite+=header+'\n'+superRead+'\n';
 							}else{
-								toWrite+=to_string(get_starting_position(al))+';'+to_string(read.size())+';'+superRead+'\n';
+								toWrite+=superRead+'\n';
 								//READ ENCODING
 							}
 						}
@@ -1163,6 +1159,3 @@ void Aligner::alignPartGreedy(uint indiceThread){
 		progressMutex.unlock();
 	}
 }
-
-
-
