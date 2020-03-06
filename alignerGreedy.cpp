@@ -1016,7 +1016,7 @@ void Aligner::alignPartGreedy(uint indiceThread){
 							continue;
 						}
 					}
-					//BOTH ARE LAIGNED AT THIS POINT
+					//BOTH ARE ALIGNED AT THIS POINT
 					auto superpath_numbers=(recoverSuperReadsPaired_numbers(al.path,al2.path));
 					if(not superpath_numbers.first.empty()){
 						if(not superpath_numbers.second.empty()){
@@ -1057,7 +1057,10 @@ void Aligner::alignPartGreedy(uint indiceThread){
 						if(headerNeeded){
 							toWrite+=header2+'\n'+superpath.second+'\n';
 							//~ toWrite+=header2+superpath.second;
-						}else{
+						}else{					//~ path=cleanSR(path,read.size());
+					//~ printPath(path);
+					//~ path=getcleanPaths(path,false,true);
+					//~ printPath(path);
 							toWrite+=superpath.second+'\n';
 							//~ toWrite+=superpath.second;
 						}
@@ -1087,10 +1090,6 @@ void Aligner::alignPartGreedy(uint indiceThread){
 						continue;
 					}
 					//REGULAR MODE
-					//~ path=cleanSR(path,read.size());
-					//~ printPath(path);
-					//~ path=getcleanPaths(path,false,true);
-					//~ printPath(path);
 					superRead=(recoverSuperReadsNoStr(al.path,0));
 					if(superRead!=""){
 						if(printAlignment){

@@ -1081,10 +1081,12 @@ bool Aligner::compactVectors(vector<uNumber>& numbers, vector<uNumber>& numbers2
 
 
 
-pair<string,string> Aligner::recoverSuperReadsPairedNoStr( const vector<uNumber>& vec, vector<uNumber>& vec2){
+pair<string,string> Aligner::recoverSuperReadsPairedNoStr(  vector<uNumber>& vec, vector<uNumber>& vec2){
 	//If one is empty return one read
-	vector<uNumber> numbers(getcleanPaths(vec,false,true));
-	vector<uNumber> numbers2(getcleanPaths(vec2,true,true));
+	// vector<uNumber> numbers(getcleanPaths(vec,false,true));
+	// vector<uNumber> numbers2(getcleanPaths(vec2,true,true));
+	vector<uNumber> numbers(vec);
+	vector<uNumber> numbers2(reverseVector(vec2));
 	if(numbers.size()<=0){
 		if(numbers2.size()<=0){
 			return {"",""};
@@ -1104,6 +1106,13 @@ pair<string,string> Aligner::recoverSuperReadsPairedNoStr( const vector<uNumber>
 		return{recoverSuperReadsNoStr(numbers),""};
 	}
 	++notCompatedSR;
+	// cout<<"fail"<<endl;
+	// for (auto i : numbers){cout<<i<<" ";}
+	// cout<<endl;
+	// for (auto i : numbers2){cout<<i<<" ";}
+	// cout<<endl;
+	// cout<<"JATTEND"<<endl;
+	// cin.get();
 	return{recoverSuperReadsNoStr(numbers),recoverSuperReadsNoStr(numbers2)};
 }
 
@@ -2600,4 +2609,3 @@ string Aligner::path2nuc(const vector<uNumber>& path){
 	res+=":";
 	return res;
 }
-

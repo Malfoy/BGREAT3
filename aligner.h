@@ -317,7 +317,7 @@ public:
 	string recoverSuperReads(const vector<uNumber>& numbers);
 	//~ pair<string,string> recoverSuperReadsPaired( const vector<uNumber>& vec, vector<uNumber>& vec2);
 	string recoverSuperReadsNoStr(const vector<uNumber>& numbers, uint offset);
-	pair<string,string> recoverSuperReadsPairedNoStr( const vector<uNumber>& vec, vector<uNumber>& vec2);
+	pair<string,string> recoverSuperReadsPairedNoStr( vector<uNumber>& vec, vector<uNumber>& vec2);
 	//~ bool isNeighboor(const uint number1, const uint number2);
 	void fillIndices();
 	void fillIndicesVector();
