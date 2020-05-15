@@ -845,13 +845,18 @@ vector<uNumber> Aligner::getcleanPaths(const vector<uNumber>& numbers, bool reve
 	vector<uNumber> res;
 	if(numbers.empty()){return res;}
 	if(clean){
-		if(numbers[0]+k-1> unitigs[abs(numbers[1])].size()){
-			res=vector<uNumber>(&numbers[2],&numbers[numbers.size()]);
+		if(numbers.size()>2){
+			if(numbers[0]+k-1> unitigs[abs(numbers[1])].size()){
+				res=vector<uNumber>(numbers.begin()+2,numbers.end());
+			}else{
+				res=vector<uNumber>(numbers.begin()+1,numbers.end());
+			}
 		}else{
-			res=vector<uNumber>(&numbers[1],&numbers[numbers.size()]);
+			res=vector<uNumber>(numbers.begin()+1,numbers.end());
 		}
 	}else{
-		res=vector<uNumber>(&numbers[0],&numbers[numbers.size()]);
+		// res=vector<uNumber>(&numbers[0],&numbers[numbers.size()]);
+		res=numbers;
 	}
 	//~ path_extension(res);
 	if(reverse){
